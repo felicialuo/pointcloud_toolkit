@@ -41,6 +41,8 @@ config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
 # Start streaming
 profile = pipeline.start(config)
 
+out_npz = None
+
 
 
 if __name__ == "__main__":
@@ -76,13 +78,18 @@ if __name__ == "__main__":
 
 
         # open3d fast save pointcloud
-        vis = o3d.visualization.Visualizer()
-        vis.create_window('PCD', width=1280, height=720)
+        # vis = o3d.visualization.Visualizer()
+        # vis.create_window('PCD', width=1280, height=720)
         pointcloud = o3d.geometry.PointCloud()
+        
         while True:
             pointcloud.clear()
-            vis.add_geometry(pointcloud)
+            # vis.add_geometry(pointcloud)
             dt0=datetime.now()
+            print("dt0", dt0.hour, dt0.minute, dt0.second)
+
+            # # only compute and save pointcloud once every 1 seconds
+            # if not dt0.second % 1 == 0: continue
 
             # Wait for the next set of frames from the camera
             frames = pipeline.wait_for_frames()
@@ -110,22 +117,30 @@ if __name__ == "__main__":
             # rotate -90 degree by x-axis
             pointcloud.transform([[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]])
             
-            # Save point cloud
-            # o3d.io.write_point_cloud("2.ply", pointcloud)
-            print("Saved ply successfully")
+            '''Save point cloud'''
+            filename = 'output/' + str(dt0.hour) + '_' + str(dt0.minute) + '_' + str(dt0.second)
+            o3d.io.write_point_cloud(filename+".ply", pointcloud)
+            print(filename+".ply saved successfully")
 
             xyz = np.asarray(pointcloud.points)
             rgb = np.asarray(pointcloud.colors)
             assert(xyz.shape == rgb.shape)
-            out_npz = np.hstack([xyz, rgb])
-            np.savez("pointcloud.npz", out_npz)
-            print("Saved npz successfully")
+            curr_npz = np.hstack([xyz, rgb])
+            # print("curr_npz", curr_npz.shape)
+            if out_npz is None: 
+                out_npz = curr_npz
+                print("save curr")
+            else: 
+                out_npz = np.vstack([out_npz, curr_npz])
+                print('save added')
+            np.savez("output/all_pcd.npz", out_npz)
+            print(filename + ".npz saved successfully", out_npz.shape)
 
             # Visualize point cloud
             # vis.update_geometry(pointcloud)
             # vis.poll_events()
             # vis.update_renderer()
-            o3d.visualization.draw_geometries([pointcloud])
+            # o3d.visualization.draw_geometries([pointcloud])
 
             # Print fps
             process_time = datetime.now() - dt0

@@ -7,12 +7,22 @@ import numpy as np
 import cv2
 import sys
 import open3d as o3d
+import os
+from os.path import exists, join, abspath
 from datetime import datetime
+
+#### SPECIFY THESE ####
+# downsample videos
+FPS = 1
+sec_clip_length = 6
+sec_spacing = 4
+# Directory to save dataset in
+DATASET_FOLDER = '../dataset/'
 
 # Configure depth and color streams
 pipeline = rs.pipeline()
 config = rs.config()
-pc= rs.pointcloud()
+pc = rs.pointcloud()
 align_to = rs.stream.color
 align = rs.align(align_to)
 
@@ -24,14 +34,16 @@ device_product_line = str(device.get_info(rs.camera_info.product_line))
 depth_sensor = pipeline_profile.get_device().first_depth_sensor()
 depth_scale = depth_sensor.get_depth_scale()
 found_rgb = False
+if depth_sensor: print("Depth Camera Found")
+else: print("RGB Camera NOT Found")
 
 for s in device.sensors:
     if s.get_info(rs.camera_info.name) == 'RGB Camera':
         found_rgb = True
-        print("Found Camera")
+        print("RGB Camera Found")
         break
 if not found_rgb:
-    print("Camera Not Found")
+    print("RGB Camera NOT Found")
     sys.exit()
 
 # for Intel Realsense D435i camera
@@ -40,16 +52,17 @@ config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
 
 # Start streaming
 profile = pipeline.start(config)
+print("** Start streaming **")
 
 out_npz = None
 
 
 
 if __name__ == "__main__":
-    
+
     try:
 
-        # # rs save mesh 
+        # '''rs save mesh'''
         # while True:
         #     dt0=datetime.now()
         #     # Wait for the next set of frames from the camera
@@ -77,7 +90,11 @@ if __name__ == "__main__":
         #     print("FPS: "+str(1/process_time.total_seconds()))
 
 
+<<<<<<< Updated upstream
         # open3d fast save pointcloud
+=======
+        '''open3d fast save pointcloud'''
+>>>>>>> Stashed changes
         # vis = o3d.visualization.Visualizer()
         # vis.create_window('PCD', width=1280, height=720)
         pointcloud = o3d.geometry.PointCloud()
@@ -117,10 +134,16 @@ if __name__ == "__main__":
             # rotate -90 degree by x-axis
             pointcloud.transform([[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]])
             
+<<<<<<< Updated upstream
             '''Save point cloud'''
             filename = 'output/' + str(dt0.hour) + '_' + str(dt0.minute) + '_' + str(dt0.second)
             o3d.io.write_point_cloud(filename+".ply", pointcloud)
             print(filename+".ply saved successfully")
+=======
+            # Save point cloud
+            o3d.io.write_point_cloud("2.ply", pointcloud)
+            print("Saved ply successfully")
+>>>>>>> Stashed changes
 
             xyz = np.asarray(pointcloud.points)
             rgb = np.asarray(pointcloud.colors)
@@ -144,7 +167,7 @@ if __name__ == "__main__":
 
             # Print fps
             process_time = datetime.now() - dt0
-            print("FPS: "+str(1/process_time.total_seconds()))
+            print("FPS: "+str(1/process_time.total_seconds())) # avg 29 fps
 
 
 

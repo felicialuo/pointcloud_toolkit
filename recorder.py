@@ -13,13 +13,13 @@ from os.path import exists, join, abspath
 import os
 from datetime import datetime
 
-#### SPECIFY THESE ####
+''' SPECIFY THESE''' 
 # downsample videos
-FPS = 3
+FPS = 1
 sec_clip_length = 1
 sec_spacing = 0
 # Directory to save dataset in
-DATASET_FOLDER = '../dataset/'
+DATASET_FOLDER = '../datasets/'
 
 # calc millisecond intervals per FPS
 ms_milestones = [i * 1000 // (FPS) for i in range(FPS)]
@@ -131,8 +131,10 @@ if __name__ == "__main__":
                 # Convert images to numpy arrays
                 depth_image = np.asanyarray(depth_frame.get_data())
                 color_image = np.asanyarray(color_frame.get_data())
-                cv2.imwrite("%s/%s.png" % \
-                        (PATH_DEPTH, curr_time), depth_image)
+                # cv2.imwrite("%s/%s.png" % \
+                #         (PATH_DEPTH, curr_time), depth_image)
+                np.savez_compressed("%s/%s.npz" % \
+                        (PATH_DEPTH, curr_time), depth_image) # unit mm
                 cv2.imwrite("%s/%s.jpg" % \
                         (PATH_COLOR, curr_time), color_image)
                 
@@ -152,7 +154,7 @@ if __name__ == "__main__":
                 pinhole_camera_intrinsic = o3d.camera.PinholeCameraIntrinsic(intr.width, intr.height, intr.fx,
                                                                 intr.fy, intr.ppx, intr.ppy)
                 # Create point cloud from rgbd
-                pointcloud = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image,pinhole_camera_intrinsic)
+                pointcloud = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image, pinhole_camera_intrinsic)
                 # rotate -90 degree by x-axis
                 pointcloud.transform([[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]])
                 
